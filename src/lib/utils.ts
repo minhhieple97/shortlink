@@ -14,3 +14,9 @@ export const isUser = (user: User) => {
 export const isAdmin = (user: User) => {
   return user.privateMetadata?.role?.toString() === userRoleEnum.enumValues[1];
 };
+
+
+export const truncateUrl = (url: string, maxLength: number = 40) => {
+  if (url.length <= maxLength) return url;
+  return url.substring(0, maxLength) + '...';
+};
