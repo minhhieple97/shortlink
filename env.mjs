@@ -7,6 +7,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string(),
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
     DATABASE_URL: z.string(),
+    OPENAI_API_KEY: z.string(),
   },
 
   client: {
@@ -25,5 +26,6 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_SIGN_UP_PATH: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_PATH,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
 });
