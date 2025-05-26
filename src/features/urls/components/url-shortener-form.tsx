@@ -4,8 +4,10 @@ import { Form, FormControl, FormField, FormItem, Input, Button } from '@/compone
 import { env } from '@/env';
 import { useShortenUrl } from '../hooks/use-shorten-url';
 import { UI_CONSTANTS } from '@/constants';
+import { SignIn, SignInButton, useAuth, useSignIn } from '@clerk/nextjs';
 
 export const UrlShortenerForm = () => {
+  const { isSignedIn } = useAuth();
   const { onSubmit, shortUrl, isPending, form, resetForm, flagged, flagReason, handleCopy } =
     useShortenUrl();
 
@@ -46,7 +48,9 @@ export const UrlShortenerForm = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                onSubmit(form.getValues());
+                if (isSignedIn) {
+                  onSubmit(form.getValues());
+                }
               }}
               className="space-y-4"
             >
@@ -60,17 +64,25 @@ export const UrlShortenerForm = () => {
                         <Input
                           placeholder={UI_CONSTANTS.FORM_PLACEHOLDERS.URL_INPUT}
                           {...field}
-                          disabled={isPending}
+                          disabled={isPending || !isSignedIn}
                         />
                       </FormControl>
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isPending}>
-                  {isPending
-                    ? UI_CONSTANTS.BUTTON_LABELS.SHORTENING
-                    : UI_CONSTANTS.BUTTON_LABELS.SHORTEN}
-                </Button>
+                {isSignedIn ? (
+                  <Button type="submit" disabled={isPending}>
+                    {isPending
+                      ? UI_CONSTANTS.BUTTON_LABELS.SHORTENING
+                      : UI_CONSTANTS.BUTTON_LABELS.SHORTEN}
+                  </Button>
+                ) : (
+                  <SignInButton>
+                    <Button type="button" disabled={isPending}>
+                      Login to shorten
+                    </Button>
+                  </SignInButton>
+                )}
               </div>
 
               <FormField
@@ -90,7 +102,7 @@ export const UrlShortenerForm = () => {
                           value={field.value || ''}
                           onChange={(e) => field.onChange(e.target.value || '')}
                           className="flex-1"
-                          disabled={isPending}
+                          disabled={isPending || !isSignedIn}
                         />
                       </div>
                     </FormControl>
