@@ -6,7 +6,8 @@ import { useShortenUrl } from '../hooks/use-shorten-url';
 import { UI_CONSTANTS } from '@/constants';
 
 export const UrlShortenerForm = () => {
-  const { onSubmit, shortUrl, isPending, form, resetForm, flagged, flagReason } = useShortenUrl();
+  const { onSubmit, shortUrl, isPending, form, resetForm, flagged, flagReason, handleCopy } =
+    useShortenUrl();
 
   return (
     <>
@@ -28,12 +29,7 @@ export const UrlShortenerForm = () => {
             <p className="font-medium">Your shortened URL:</p>
             <div className="flex items-center gap-2 mt-2">
               <Input value={shortUrl} readOnly />
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(shortUrl);
-                }}
-                size="sm"
-              >
+              <Button onClick={handleCopy} size="sm">
                 {UI_CONSTANTS.BUTTON_LABELS.COPY}
               </Button>
             </div>

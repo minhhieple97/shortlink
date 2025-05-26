@@ -83,6 +83,13 @@ export const useShortenUrl = () => {
     form.reset();
     resetAction();
   };
+  const handleCopy = () => {
+    if (result?.data?.shortUrl) {
+      navigator.clipboard.writeText(result.data.shortUrl);
+      toast.success(UI_CONSTANTS.TOAST_MESSAGES.COPY_SUCCESS);
+      toast.success(`${UI_CONSTANTS.TOAST_MESSAGES.COPY_SUCCESS}`);
+    }
+  };
 
   return {
     onSubmit,
@@ -92,5 +99,6 @@ export const useShortenUrl = () => {
     flagged: result?.data?.flagged,
     flagReason: result?.data?.flagReason,
     resetForm,
+    handleCopy,
   };
 };
