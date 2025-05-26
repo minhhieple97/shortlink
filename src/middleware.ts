@@ -7,7 +7,6 @@ const isAuthRoute = createRouteMatcher(['/dashboard', '/dashboard/(.*)']);
 const isProtectedRoute = createRouteMatcher([
   '/dashboard',
   '/dashboard/(.*)',
-  '/checkout',
   '/profile',
   '/profile/(.*)',
 ]);
@@ -25,7 +24,7 @@ export default clerkMiddleware(async (auth, req) => {
       return Response.redirect(new URL('/', req.url));
     }
 
-    if (isAuthRoute(req) && role !== ROLE_TYPE.USER) {
+    if (isAuthRoute(req) && role !== ROLE_TYPE.USER && role !== ROLE_TYPE.ADMIN) {
       return Response.redirect(new URL('/', req.url));
     }
   }
