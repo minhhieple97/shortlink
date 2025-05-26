@@ -11,7 +11,7 @@ import { Button } from '../ui/button';
 import { MoonIcon, SunIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
-export default function ThemeToggle() {
+export const ThemeToggle = () => {
   const { setTheme } = useTheme();
   return (
     <DropdownMenu>
@@ -29,4 +29,4 @@ export default function ThemeToggle() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};
