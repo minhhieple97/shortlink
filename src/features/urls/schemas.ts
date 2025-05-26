@@ -20,3 +20,7 @@ export const UpdateUrlSchema = z.object({
     .max(255, 'Custom code must be less than 255 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Custom code must be alphanumeric or hyphen'),
 });
+
+export const DeleteUrlSchema = z.object({
+  id: z.number(),
+});

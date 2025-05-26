@@ -3,14 +3,12 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { IUrl } from '../types';
+import { useDeleteUrl } from './use-delete-url';
+import { UI_CONSTANTS } from '@/constants';
+import { useRouter } from 'next/navigation';
+import { env } from '@/env';
 
-type UseUserUrlsTableProps = {
-  initialUrls: IUrl[];
-};
-
-export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [localUrls, setLocalUrls] = useState<IUrl[]>(initialUrls);
+export const useUserUrlsTable = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [qrCodeShortCode, setQrCodeShortCode] = useState<string>('');
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
@@ -19,13 +17,12 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
     id: number;
     shortCode: string;
   } | null>(null);
-
-  const getBaseUrl = () => {
-    return process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-  };
+  const router = useRouter();
+  const { handleDelete: deleteUrlAction } = useDeleteUrl({});
+  const [deletingUrlId, setDeletingUrlId] = useState<number | null>(null);
 
   const getShortUrl = (shortCode: string) => {
-    return `${getBaseUrl()}/r/${shortCode}`;
+    return `${env.NEXT_PUBLIC_APP_URL}${UI_CONSTANTS.URL_PREFIX_SEPARATOR}${shortCode}`;
   };
 
   const copyToClipboard = async (shortCode: string) => {
@@ -33,7 +30,7 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
 
     try {
       await navigator.clipboard.writeText(shortUrl);
-      toast.success('Short URL copied to clipboard', {
+      toast.success(UI_CONSTANTS.TOAST_MESSAGES.COPY_SUCCESS, {
         description: 'The short URL has been copied to your clipboard',
       });
     } catch (error) {
@@ -45,38 +42,10 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
   };
 
   const handleDelete = async (id: number) => {
-    setIsDeleting(id);
-
-    try {
-      // TODO: Implement actual delete API call
-      // const response = await deleteUrl(id);
-      // if (response.success) {
-      //   setLocalUrls((prev) => prev.filter((url) => url.id !== id));
-      //   toast.success('URL deleted successfully', {
-      //     description: 'The URL has been deleted successfully',
-      //   });
-      // } else {
-      //   toast.error('Failed to delete URL', {
-      //     description: response.error || 'An error occurred',
-      //   });
-      // }
-
-      // Temporary simulation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setLocalUrls((prev) => prev.filter((url) => url.id !== id));
-      toast.success('URL deleted successfully', {
-        description: 'The URL has been deleted successfully',
-      });
-    } catch (error) {
-      console.error('Failed to delete URL', error);
-      toast.error('Failed to delete URL', {
-        description: 'An error occurred while deleting the URL',
-      });
-    } finally {
-      setIsDeleting(null);
-    }
+    setDeletingUrlId(id);
+    deleteUrlAction(id);
   };
-
+  console.log('deletingUrlId state', deletingUrlId);
   const showQrCode = (shortCode: string) => {
     const shortUrl = getShortUrl(shortCode);
     setQrCodeUrl(shortUrl);
@@ -89,12 +58,8 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSuccess = (newShortCode: string) => {
+  const handleEditSuccess = () => {
     if (!urlToEdit) return;
-
-    setLocalUrls((prev) =>
-      prev.map((url) => (url.id === urlToEdit.id ? { ...url, shortCode: newShortCode } : url)),
-    );
 
     toast.success('URL updated successfully', {
       description: 'The short code has been updated',
@@ -112,10 +77,12 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
     setUrlToEdit(null);
   };
 
+  const handlePageChange = (newPage: number) => {
+    router.push(`/dashboard?page=${newPage}`);
+  };
+
   return {
-    // State
-    localUrls,
-    isDeleting,
+    isDeleting: deletingUrlId,
     qrCodeUrl,
     qrCodeShortCode,
     isQrCodeModalOpen,
@@ -137,5 +104,6 @@ export const useUserUrlsTable = ({ initialUrls }: UseUserUrlsTableProps) => {
 
     // Utilities
     getShortUrl,
+    handlePageChange,
   };
 };

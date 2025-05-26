@@ -6,16 +6,31 @@ import { currentUser } from '@clerk/nextjs/server';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { env } from '@/env';
+import { routes } from '@/routes';
+import { PAGINATION } from '@/constants';
+import { PaginationUrls } from '@/components/shared/pagination-urls';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Dashboard | ShortLink',
   description: 'Dashboard page',
 };
 
-export default async function DashboardPage() {
-  const user = await currentUser();
-  const userUrls = await getUserUrls(user?.id as string);
+type DashboardPageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
 
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const user = await currentUser();
+  const params = await searchParams;
+  const page = parseInt(params.page || PAGINATION.DEFAULT_PAGE.toString(), 10);
+
+  const { urls, pagination } = await getUserUrls({
+    userId: user!.id,
+    page,
+    limit: PAGINATION.DEFAULT_LIMIT,
+  });
   return (
     <div className="w-full max-w-none space-y-6 lg:space-y-8">
       <div className="flex flex-col space-y-2">
@@ -40,14 +55,24 @@ export default async function DashboardPage() {
 
         <Card className="shadow-sm border-dashed border-border/50 w-full overflow-hidden">
           <CardHeader className="pb-3 lg:pb-4">
-            <CardTitle className="text-lg lg:text-xl">Your URLs</CardTitle>
-            <CardDescription className="text-xs lg:text-sm">
-              Manage and track your shortened URLs.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg lg:text-xl">Your URLs</CardTitle>
+                <CardDescription className="text-xs lg:text-sm">
+                  Manage and track your shortened URLs.
+                </CardDescription>
+              </div>
+              <PaginationUrls pagination={pagination} className="hidden sm:block" />
+            </div>
           </CardHeader>
           <CardContent className="pt-0 px-0 lg:px-6">
             <div className="px-4 lg:px-0">
-              <UserUrlsTable urls={userUrls} />
+              <UserUrlsTable
+                key={`page-${page}`}
+                urls={urls}
+                pagination={pagination}
+                currentPage={page}
+              />
             </div>
           </CardContent>
         </Card>
@@ -55,7 +80,7 @@ export default async function DashboardPage() {
         {env.NODE_ENV === 'development' && user && isAdmin(user) && (
           <div className="flex justify-center pt-2 lg:pt-4">
             <Link
-              href={'/admin'}
+              href={routes.admin.root}
               className="inline-flex items-center text-xs lg:text-sm text-muted-foreground hover:text-primary underline underline-offset-4 transition-colors"
             >
               Admin Tools

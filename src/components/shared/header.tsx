@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../u
 import { SignInButton, SignOutButton, UserButton, useUser } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { useState } from 'react';
+import { routes } from '@/routes';
 
 export const Header = () => {
   const { isSignedIn } = useUser();
@@ -16,7 +17,7 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href={'/'} className="text-xl font-bold hover:opacity-80 transition-opacity">
+        <Link href={routes.home} className="text-xl font-bold hover:opacity-80 transition-opacity">
           ShortLink
         </Link>
 
@@ -24,7 +25,7 @@ export const Header = () => {
           <ThemeToggle />
 
           <Button variant={'ghost'} size={'sm'} asChild>
-            <Link href={'/stats'} className="flex items-center gap-2">
+            <Link href={routes.dashboard.stats} className="flex items-center gap-2">
               <BarChart3Icon className="size-4" />
               Stats
             </Link>
@@ -33,14 +34,14 @@ export const Header = () => {
           {isSignedIn ? (
             <>
               <Button variant={'ghost'} size={'sm'} asChild>
-                <Link href={'/dashboard'} className="flex items-center gap-2">
+                <Link href={routes.dashboard.root} className="flex items-center gap-2">
                   <LayoutDashboard className="size-4" />
                   Dashboard
                 </Link>
               </Button>
 
               <Button variant={'ghost'} size={'sm'} asChild>
-                <Link href={'/dashboard/stats'} className="flex items-center gap-2">
+                <Link href={routes.dashboard.stats} className="flex items-center gap-2">
                   <BarChart3Icon className="size-4" />
                   My Stats
                 </Link>
@@ -76,7 +77,7 @@ export const Header = () => {
               <nav className="flex flex-col gap-2 mt-6">
                 <Button variant={'ghost'} size={'sm'} asChild onClick={closeSheet}>
                   <Link
-                    href={'/stats'}
+                    href={routes.dashboard.stats}
                     className="flex items-center gap-3 justify-start w-full h-12"
                   >
                     <BarChart3Icon className="size-4" />
@@ -88,7 +89,7 @@ export const Header = () => {
                   <>
                     <Button variant={'ghost'} size={'sm'} asChild onClick={closeSheet}>
                       <Link
-                        href={'/dashboard'}
+                        href={routes.dashboard.root}
                         className="flex items-center gap-3 justify-start w-full h-12"
                       >
                         <LayoutDashboard className="size-4" />
@@ -98,7 +99,7 @@ export const Header = () => {
 
                     <Button variant={'ghost'} size={'sm'} asChild onClick={closeSheet}>
                       <Link
-                        href={'/dashboard/stats'}
+                        href={routes.dashboard.stats}
                         className="flex items-center gap-3 justify-start w-full h-12"
                       >
                         <BarChart3Icon className="size-4" />
@@ -106,7 +107,7 @@ export const Header = () => {
                       </Link>
                     </Button>
 
-                    <SignOutButton signOutOptions={{ redirectUrl: '/' }}>
+                    <SignOutButton signOutOptions={{ redirectUrl: routes.home }}>
                       <Button
                         variant={'ghost'}
                         size={'sm'}

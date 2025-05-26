@@ -3,9 +3,10 @@
 import { Copy, Edit, ExternalLink, QrCode, Trash2Icon, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { formatDistanceToNow } from 'date-fns';
-import { IUrl } from '../types';
+import { IUrl, PaginationInfo } from '../types';
 import { QRCodeModal } from './qr-code-modal';
 import { EditUrlModal } from './edit-url-modal';
+import { TablePagination } from '@/components/shared';
 import { useUserUrlsTable } from '../hooks/use-user-urls-table';
 import {
   DropdownMenu,
@@ -22,14 +23,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { truncateUrl } from '@/lib/utils';
+import { PAGINATION, URL_DISPLAY } from '@/constants';
 
 type IUserUrlsTableProps = {
   urls: IUrl[];
+  pagination: PaginationInfo;
+  currentPage?: number;
 };
 
-export const UserUrlsTable = ({ urls }: IUserUrlsTableProps) => {
+export const UserUrlsTable = ({ urls, pagination }: IUserUrlsTableProps) => {
   const {
-    localUrls,
     isDeleting,
     qrCodeUrl,
     qrCodeShortCode,
@@ -44,9 +47,9 @@ export const UserUrlsTable = ({ urls }: IUserUrlsTableProps) => {
     setIsQrCodeModalOpen,
     setIsEditModalOpen,
     getShortUrl,
-  } = useUserUrlsTable({ initialUrls: urls });
+  } = useUserUrlsTable();
 
-  if (localUrls.length === 0) {
+  if (urls.length === 0 && pagination.page === PAGINATION.DEFAULT_PAGE) {
     return (
       <div className="text-center py-12">
         <div className="mx-auto max-w-md">
@@ -73,7 +76,7 @@ export const UserUrlsTable = ({ urls }: IUserUrlsTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {localUrls.map((url) => {
+            {urls.map((url) => {
               const shortUrl = getShortUrl(url.shortCode);
 
               return (
@@ -81,7 +84,7 @@ export const UserUrlsTable = ({ urls }: IUserUrlsTableProps) => {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="truncate text-sm flex-1 min-w-0" title={url.originalUrl}>
-                        {truncateUrl(url.originalUrl, 50)}
+                        {truncateUrl(url.originalUrl, URL_DISPLAY.ORIGINAL_URL_MAX_LENGTH)}
                       </div>
                       <a
                         href={url.originalUrl}
@@ -96,7 +99,7 @@ export const UserUrlsTable = ({ urls }: IUserUrlsTableProps) => {
                   <TableCell>
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="truncate text-sm font-mono flex-1 min-w-0" title={shortUrl}>
-                        {truncateUrl(shortUrl, 35)}
+                        {truncateUrl(shortUrl, URL_DISPLAY.SHORT_URL_MAX_LENGTH)}
                       </div>
                       <Button
                         variant={'ghost'}

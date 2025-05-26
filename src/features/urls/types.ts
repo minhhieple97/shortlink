@@ -1,4 +1,4 @@
-import { UpdateUrlSchema, UrlFormSchema } from './schemas';
+import { UpdateUrlSchema, UrlFormSchema, DeleteUrlSchema } from './schemas';
 import { z } from 'zod';
 
 export type IUrlFormData = z.infer<typeof UrlFormSchema>;
@@ -20,3 +20,14 @@ export type IUrl = {
 };
 
 export type IUpdateUrlFormData = z.infer<typeof UpdateUrlSchema>;
+
+export type IDeleteUrlFormData = z.infer<typeof DeleteUrlSchema>;
+
+export type PaginationInfo = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};

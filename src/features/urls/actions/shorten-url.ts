@@ -10,6 +10,7 @@ import { UrlFormSchema } from '../schemas';
 import { isAdmin } from '@/lib/utils';
 import { env } from '@/env';
 import { URL_SAFETY } from '@/constants';
+import { routes } from '@/routes';
 
 export const shortenUrl = authAction
   .schema(UrlFormSchema)
@@ -52,7 +53,7 @@ export const shortenUrl = authAction
     const baseUrl = env.NEXT_PUBLIC_APP_URL;
     const shortUrl = `${baseUrl}/r/${shortCode}`;
 
-    revalidatePath('/');
+    revalidatePath(routes.dashboard.root);
 
     return {
       shortUrl,

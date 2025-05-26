@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { ActionError, authAction } from '@/lib/safe-action';
 import { UpdateUrlSchema } from '../schemas';
 import { env } from '@/env';
+import { routes } from '@/routes';
 
 export const updateUrl = authAction
   .schema(UpdateUrlSchema)
@@ -39,7 +40,7 @@ export const updateUrl = authAction
     const baseUrl = env.NEXT_PUBLIC_APP_URL;
     const shortUrl = `${baseUrl}/r/${customCode}`;
 
-    revalidatePath('/dashboard');
+    revalidatePath(routes.dashboard.root);
 
     return {
       shortUrl,

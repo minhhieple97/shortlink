@@ -27,6 +27,11 @@ export const UI_CONSTANTS = {
     VALIDATION_FALLBACK: 'Please check your input and try again',
     SHORT_URL_SUCCESS_PREFIX: 'Short URL created: ',
     COPY_SUCCESS: 'Copied to clipboard!',
+    URL_UPDATED_SUCCESS: 'URL updated successfully',
+    URL_UPDATED_DESCRIPTION: 'The short code has been updated',
+    COPY_DESCRIPTION: 'The short URL has been copied to your clipboard',
+    COPY_ERROR: 'Failed to copy to clipboard',
+    COPY_ERROR_DESCRIPTION: 'Please try again or copy manually',
   },
   FORM_PLACEHOLDERS: {
     URL_INPUT: 'Paste your long URL here',
@@ -39,6 +44,17 @@ export const UI_CONSTANTS = {
     CREATE_ANOTHER: 'Create another',
   },
   URL_PREFIX_SEPARATOR: '/r/',
+} as const;
+
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MIN_PAGE: 1,
+} as const;
+
+export const URL_DISPLAY = {
+  ORIGINAL_URL_MAX_LENGTH: 50,
+  SHORT_URL_MAX_LENGTH: 35,
 } as const;
 
 export const OPENAI_CONFIG = {

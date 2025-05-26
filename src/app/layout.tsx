@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/shared/header';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,9 +38,11 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Header />
-            {children}
-            <Toaster />
+            <NuqsAdapter>
+              <Header />
+              {children}
+              <Toaster />
+            </NuqsAdapter>
           </ThemeProvider>
         </body>
       </html>
