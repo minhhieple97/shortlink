@@ -3,15 +3,12 @@
 import { useAction } from 'next-safe-action/hooks';
 import { deleteUrl } from '../actions/delete-url';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 type UseDeleteUrlProps = {
   onSuccess?: () => void;
 };
 
 export const useDeleteUrl = ({ onSuccess }: UseDeleteUrlProps = {}) => {
-  const router = useRouter();
-
   const {
     execute,
     isPending,
@@ -22,7 +19,6 @@ export const useDeleteUrl = ({ onSuccess }: UseDeleteUrlProps = {}) => {
         toast.success('URL deleted successfully', {
           description: 'The URL has been deleted successfully',
         });
-        router.refresh();
         onSuccess?.();
       }
     },

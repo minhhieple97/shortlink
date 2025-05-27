@@ -17,3 +17,5 @@ export * from './switch';
 export * from './alert';
 export * from './badge';
 export * from './dialog';
+export * from './tabs';
+export * from './chart';
