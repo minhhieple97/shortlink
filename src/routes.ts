@@ -1,5 +1,6 @@
 export const routes = {
   home: '/',
+  stats: '/stats',
   dashboard: {
     root: '/dashboard',
     stats: '/dashboard/stats',

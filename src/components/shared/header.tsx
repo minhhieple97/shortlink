@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { BarChart3Icon, LayoutDashboard, LogIn, LogOut, Menu, UserPlus } from 'lucide-react';
+import { BarChart3Icon, LayoutDashboard, LogOut, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 import { SignInButton, SignOutButton, UserButton, useUser } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
@@ -24,13 +24,6 @@ export const Header = () => {
         <nav className="hidden md:flex items-center gap-1">
           <ThemeToggle />
 
-          <Button variant={'ghost'} size={'sm'} asChild>
-            <Link href={routes.dashboard.stats} className="flex items-center gap-2">
-              <BarChart3Icon className="size-4" />
-              Stats
-            </Link>
-          </Button>
-
           {isSignedIn ? (
             <>
               <Button variant={'ghost'} size={'sm'} asChild>
@@ -51,6 +44,12 @@ export const Header = () => {
             </>
           ) : (
             <>
+              <Button variant={'ghost'} size={'sm'} asChild>
+                <Link href={routes.stats} className="flex items-center gap-2">
+                  <BarChart3Icon className="size-4" />
+                  Stats
+                </Link>
+              </Button>
               <SignInButton>
                 <Button variant={'ghost'} size={'sm'}>
                   Login
@@ -120,9 +119,17 @@ export const Header = () => {
                     </SignOutButton>
                   </>
                 ) : (
-                  <SignInButton>
-                    <Button type="button">Login</Button>
-                  </SignInButton>
+                  <>
+                    <Button variant={'ghost'} size={'sm'} asChild>
+                      <Link href={routes.stats} className="flex items-center gap-2">
+                        <BarChart3Icon className="size-4" />
+                        Stats
+                      </Link>
+                    </Button>
+                    <SignInButton>
+                      <Button type="button">Login</Button>
+                    </SignInButton>
+                  </>
                 )}
               </nav>
             </SheetContent>

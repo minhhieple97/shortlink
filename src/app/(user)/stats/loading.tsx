@@ -1,16 +1,7 @@
-import { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { SignInButton } from '@clerk/nextjs';
-import { getPublicStats } from '@/features/urls/queries';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const metadata: Metadata = {
-  title: 'Statistics | ShortLink',
-  description: 'Statistics about our URL shortener service',
-};
-
-export default async function PublicStatsPage() {
-  const { totalUrls, totalClicks } = await getPublicStats();
-
+export default function StatsLoading() {
   return (
     <div className="container max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-2 text-center">Service Statistics</h1>
@@ -25,7 +16,7 @@ export default async function PublicStatsPage() {
             <CardDescription>Number of URLs shortened with our service</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{totalUrls.toLocaleString()}</p>
+            <Skeleton className="h-12 w-32" />
           </CardContent>
         </Card>
 
@@ -35,7 +26,7 @@ export default async function PublicStatsPage() {
             <CardDescription>Total number of redirects through our service</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{totalClicks.toLocaleString()}</p>
+            <Skeleton className="h-12 w-32" />
           </CardContent>
         </Card>
       </div>
@@ -49,7 +40,7 @@ export default async function PublicStatsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center gap-4">
-            <SignInButton />
+            <Skeleton className="h-10 w-24" />
           </CardContent>
         </Card>
       </div>
