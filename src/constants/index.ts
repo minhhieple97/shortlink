@@ -3,6 +3,8 @@ export const ROLE_TYPE = {
   USER: 'user',
 } as const;
 
+export type UserRole = (typeof ROLE_TYPE)[keyof typeof ROLE_TYPE];
+
 export const URL_SAFETY = {
   CATEGORIES: {
     MALICIOUS: 'malicious',
@@ -61,4 +63,22 @@ export const OPENAI_CONFIG = {
   MODEL: 'gpt-4o-mini',
   TEMPERATURE: 0.1,
   RESPONSE_FORMAT: { type: 'json_object' as const },
+} as const;
+
+export const ADMIN_TABLE = {
+  PAGINATION: {
+    DEFAULT_LIMIT: 10,
+  },
+  ACTIONS: {
+    PROMOTE: 'Promote',
+    DEMOTE: 'Demote',
+  },
+  MESSAGES: {
+    SUCCESS: 'User role updated successfully',
+    ERROR: 'Failed to update user role',
+    DEFAULT_ERROR: 'An error occurred',
+    NO_USERS_SEARCH: 'No users found with the given search criteria',
+    NO_USERS: 'No users found',
+  },
+  ID_DISPLAY_LENGTH: 8,
 } as const;

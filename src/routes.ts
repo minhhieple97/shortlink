@@ -7,5 +7,8 @@ export const routes = {
   },
   admin: {
     root: '/admin',
+    urls: '/admin/urls',
+    flagged: '/admin/urls/flagged',
+    users: '/admin/users',
   },
 };

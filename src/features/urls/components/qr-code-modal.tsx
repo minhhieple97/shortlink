@@ -7,12 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, Button } from '@/comp
 import Image from 'next/image';
 import { Download } from 'lucide-react';
 
-interface QRCodeModalProps {
+type QRCodeModalProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   url: string;
   shortCode: string;
-}
+};
 
 export const QRCodeModal = ({ isOpen, onOpenChange, url, shortCode }: QRCodeModalProps) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);

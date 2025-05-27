@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 
-interface DashboardLayoutProps {
+type DashboardLayoutProps = {
   children: ReactNode;
-}
+};
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
