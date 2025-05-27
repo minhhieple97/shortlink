@@ -32,7 +32,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     limit: PAGINATION.DEFAULT_LIMIT,
   });
   return (
-    <div className="w-full max-w-none space-y-6 lg:space-y-8">
+    <div className="w-full space-y-6 lg:space-y-8">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm lg:text-base text-muted-foreground">
