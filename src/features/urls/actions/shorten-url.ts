@@ -1,6 +1,11 @@
 'use server';
-
-import { checkUrlSafety, ensureHttps } from '../services';
+import {
+  checkUrlSafety,
+  cleanupShortCode,
+  ensureHttps,
+  generateShortCode,
+  processSafetyCheck,
+} from '../services';
 import { db } from '@/db';
 import { urls } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
@@ -8,11 +13,9 @@ import { ActionError, authAction } from '@/lib/safe-action';
 import { UrlFormSchema } from '../schemas';
 import { isAdmin } from '@/lib/utils';
 import { env } from '@/env';
-import { CACHE_TTL, URL_SAFETY, SHORT_CODE } from '@/constants';
+import { CACHE_TTL } from '@/constants';
 import { routes } from '@/routes';
 import { redis } from '@/lib/redis';
-import { ShortCodeGenerator } from '@/lib/short-code-generator';
-import { eq } from 'drizzle-orm';
 import { RateLimiter } from '@/lib/rate-limiter';
 
 export const shortenUrl = authAction
@@ -76,10 +79,8 @@ export const shortenUrl = authAction
         clicks: 0,
       };
 
-      await Promise.all([
-        redis.hset(`url:${shortCode}`, cacheData),
-        redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING),
-      ]);
+      await redis.hset(`url:${shortCode}`, cacheData);
+      await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
 
       revalidatePath(routes.dashboard.root);
 
@@ -94,46 +95,3 @@ export const shortenUrl = authAction
     }
   });
 
-const generateShortCode = async (customCode?: string): Promise<string> => {
-  if (customCode) {
-    const isAvailable = await ShortCodeGenerator.isCodeAvailable(customCode);
-    if (!isAvailable) {
-      throw new ActionError('Custom code already exists');
-    }
-
-    const reserved = await ShortCodeGenerator.reserveCode(customCode);
-    if (!reserved) {
-      throw new ActionError('Custom code was taken by another user');
-    }
-
-    return customCode;
-  }
-
-  return ShortCodeGenerator.generateUniqueCode();
-};
-
-const processSafetyCheck = (
-  safetyCheck: Awaited<ReturnType<typeof checkUrlSafety>>,
-  userIsAdmin: boolean,
-): { flagged: boolean; flagReason: string | null; shouldBlock: boolean } => {
-  if (!safetyCheck.success || !safetyCheck.data) {
-    return { flagged: false, flagReason: null, shouldBlock: false };
-  }
-
-  const { flagged, reason, category, confidence } = safetyCheck.data;
-
-  const shouldBlock =
-    category === URL_SAFETY.CATEGORIES.MALICIOUS &&
-    confidence > URL_SAFETY.CONFIDENCE_THRESHOLD &&
-    !userIsAdmin;
-
-  return {
-    flagged,
-    flagReason: reason,
-    shouldBlock,
-  };
-};
-
-const cleanupShortCode = async (shortCode: string): Promise<void> => {
-  await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
-};

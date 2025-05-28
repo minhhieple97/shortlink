@@ -1,8 +1,11 @@
 import OpenAI from 'openai';
 import { env } from '@/env';
 import { UrlSafetyCheck } from '../types';
-import { URL_PROTOCOLS } from '@/constants';
+import { SHORT_CODE, URL_PROTOCOLS, URL_SAFETY } from '@/constants';
 import { OPENAI_CONFIG } from '@/constants';
+import { redis } from '@/lib/redis';
+import { ShortCodeGenerator } from '@/lib/short-code-generator';
+import { ActionError } from '@/lib/safe-action';
 const client = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
   baseURL: 'https://multiappai-api.itmovnteam.com/v1',
@@ -82,4 +85,48 @@ export const checkUrlSafety = async (url: string) => {
       error: 'Failed to analyze URL safety',
     };
   }
+};
+
+export const generateShortCode = async (customCode?: string): Promise<string> => {
+  if (customCode) {
+    const isAvailable = await ShortCodeGenerator.isCodeAvailable(customCode);
+    if (!isAvailable) {
+      throw new ActionError('Custom code already exists');
+    }
+
+    const reserved = await ShortCodeGenerator.reserveCode(customCode);
+    if (!reserved) {
+      throw new ActionError('Custom code was taken by another user');
+    }
+
+    return customCode;
+  }
+
+  return ShortCodeGenerator.generateUniqueCode();
+};
+
+export const processSafetyCheck = (
+  safetyCheck: Awaited<ReturnType<typeof checkUrlSafety>>,
+  userIsAdmin: boolean,
+): { flagged: boolean; flagReason: string | null; shouldBlock: boolean } => {
+  if (!safetyCheck.success || !safetyCheck.data) {
+    return { flagged: false, flagReason: null, shouldBlock: false };
+  }
+
+  const { flagged, reason, category, confidence } = safetyCheck.data;
+
+  const shouldBlock =
+    category === URL_SAFETY.CATEGORIES.MALICIOUS &&
+    confidence > URL_SAFETY.CONFIDENCE_THRESHOLD &&
+    !userIsAdmin;
+
+  return {
+    flagged,
+    flagReason: reason,
+    shouldBlock,
+  };
+};
+
+export const cleanupShortCode = async (shortCode: string): Promise<void> => {
+  await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
 };

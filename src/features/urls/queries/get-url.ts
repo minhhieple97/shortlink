@@ -53,7 +53,6 @@ export const getUrlByShortCode = async (shortCode: string) => {
         updatedAt: new Date(),
       })
       .where(eq(urls.shortCode, shortCode)),
-
     redis.hset(`url:${shortCode}`, {
       originalUrl: url.originalUrl,
       flagged: (url.flagged || false).toString(),
@@ -61,9 +60,9 @@ export const getUrlByShortCode = async (shortCode: string) => {
       userId: url.userId || 'null',
       clicks: updatedClicks.toString(),
     }),
-    redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING),
+    ,
   ]);
-
+  await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
   return {
     originalUrl: url.originalUrl,
     flagged: url.flagged || false,
