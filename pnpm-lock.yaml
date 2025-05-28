@@ -71,6 +71,9 @@ importers:
       '@t3-oss/env-nextjs':
         specifier: ^0.13.4
         version: 0.13.4(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.23)
+      '@upstash/redis':
+        specifier: ^1.34.9
+        version: 1.34.9
       '@upstash/workflow':
         specifier: ^0.2.13
         version: 0.2.13(react@19.1.0)
@@ -1626,6 +1629,9 @@ packages:
 
   '@upstash/qstash@2.8.1':
     resolution: {integrity: sha512-E+JoLHMqygQksWATjS/9AAo7Mhi/k21Tu0zDwMm9GyNyNVjEJntQvmrH5NC7x6kXwjCDTEWFtIWz0JXu9/9pMQ==}
+
+  '@upstash/redis@1.34.9':
+    resolution: {integrity: sha512-7qzzF2FQP5VxR2YUNjemWs+hl/8VzJJ6fOkT7O7kt9Ct8olEVzb1g6/ik6B8Pb8W7ZmYv81SdlVV9F6O8bh/gw==}
 
   '@upstash/workflow@0.2.13':
     resolution: {integrity: sha512-TX2fOPnAWgW6ky7MoC9OCgVIu7rB1BRqfP+c8ILziR/I5vdpky5mrHvpSJq28Vqsq+rso0pyLW4Dmle1Hk56Rw==}
@@ -4966,6 +4972,10 @@ snapshots:
       crypto-js: 4.2.0
       jose: 5.10.0
       neverthrow: 7.2.0
+
+  '@upstash/redis@1.34.9':
+    dependencies:
+      crypto-js: 4.2.0
 
   '@upstash/workflow@0.2.13(react@19.1.0)':
     dependencies:

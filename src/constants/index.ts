@@ -82,3 +82,10 @@ export const ADMIN_TABLE = {
   },
   ID_DISPLAY_LENGTH: 8,
 } as const;
+
+
+export const CACHE_TTL = {
+  URL_MAPPING: 60 * 60 * 24,
+  SHORT_CODE_EXISTENCE: 60 * 60,
+  RATE_LIMIT: 60 * 15,
+} as const;
