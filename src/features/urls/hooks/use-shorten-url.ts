@@ -2,7 +2,7 @@
 
 import { useAction } from 'next-safe-action/hooks';
 import { shortenUrl } from '../actions/shorten-url';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { IUrlFormData } from '../types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 import { UI_CONSTANTS } from '@/constants';
 
 export const useShortenUrl = () => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const form = useForm<IUrlFormData>({
     resolver: zodResolver(UrlFormSchema),
     defaultValues: {
@@ -25,6 +28,18 @@ export const useShortenUrl = () => {
     isPending,
     reset: resetAction,
   } = useAction(shortenUrl, {
+    onExecute: () => {
+      timeoutRef.current = setTimeout(() => {
+        setIsAnalyzing(true);
+      }, 500);
+    },
+    onSettled: () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setIsAnalyzing(false);
+    },
     onSuccess: (result) => {
       if (result.data?.flagged && result.data?.flagReason) {
         toast.warning(`URL flagged: ${result.data.flagReason}`);
@@ -82,12 +97,17 @@ export const useShortenUrl = () => {
   const resetForm = () => {
     form.reset();
     resetAction();
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsAnalyzing(false);
   };
+
   const handleCopy = () => {
     if (result?.data?.shortUrl) {
       navigator.clipboard.writeText(result.data.shortUrl);
       toast.success(UI_CONSTANTS.TOAST_MESSAGES.COPY_SUCCESS);
-      toast.success(`${UI_CONSTANTS.TOAST_MESSAGES.COPY_SUCCESS}`);
     }
   };
 
@@ -100,5 +120,7 @@ export const useShortenUrl = () => {
     flagReason: result?.data?.flagReason,
     resetForm,
     handleCopy,
+    isAnalyzing,
+    setIsAnalyzing,
   };
 };

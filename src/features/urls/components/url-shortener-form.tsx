@@ -5,11 +5,22 @@ import { env } from '@/env';
 import { useShortenUrl } from '../hooks/use-shorten-url';
 import { UI_CONSTANTS } from '@/constants';
 import { SignIn, SignInButton, useAuth, useSignIn } from '@clerk/nextjs';
+import { AnalyzingModal } from '@/components/shared';
 
 export const UrlShortenerForm = () => {
   const { isSignedIn } = useAuth();
-  const { onSubmit, shortUrl, isPending, form, resetForm, flagged, flagReason, handleCopy } =
-    useShortenUrl();
+  const {
+    onSubmit,
+    shortUrl,
+    isPending,
+    form,
+    resetForm,
+    flagged,
+    flagReason,
+    handleCopy,
+    isAnalyzing,
+    setIsAnalyzing,
+  } = useShortenUrl();
 
   return (
     <>
@@ -113,6 +124,8 @@ export const UrlShortenerForm = () => {
           </Form>
         )}
       </div>
+
+      <AnalyzingModal isOpen={isAnalyzing} onOpenChange={setIsAnalyzing} />
     </>
   );
 };
