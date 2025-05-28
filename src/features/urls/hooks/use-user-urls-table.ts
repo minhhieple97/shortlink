@@ -45,7 +45,6 @@ export const useUserUrlsTable = () => {
     setDeletingUrlId(id);
     deleteUrlAction(id);
   };
-  console.log('deletingUrlId state', deletingUrlId);
   const showQrCode = (shortCode: string) => {
     const shortUrl = getShortUrl(shortCode);
     setQrCodeUrl(shortUrl);
@@ -89,7 +88,6 @@ export const useUserUrlsTable = () => {
     isEditModalOpen,
     urlToEdit,
 
-    // Actions
     copyToClipboard,
     handleDelete,
     showQrCode,
@@ -98,11 +96,9 @@ export const useUserUrlsTable = () => {
     closeQrCodeModal,
     closeEditModal,
 
-    // Modal setters
     setIsQrCodeModalOpen,
     setIsEditModalOpen,
 
-    // Utilities
     getShortUrl,
     handlePageChange,
   };

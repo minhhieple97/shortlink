@@ -103,7 +103,6 @@ export const RATE_LIMIT = {
   DEFAULT_WINDOW_MS: 60 * 1000, // 1 minute
 } as const;
 
-// QStash Queue Constants
 export const QSTASH_QUEUE = {
   ENDPOINTS: {
     CLICK_INCREMENT: '/api/queue/click',
@@ -117,14 +116,12 @@ export const QSTASH_QUEUE = {
   },
 } as const;
 
-// HTTP Status Codes
 export const HTTP_STATUS = {
   OK: 200,
   BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
 } as const;
 
-// Response Messages
 export const RESPONSE_MESSAGES = {
   QUEUE: {
     INVALID_ACTION: 'Invalid action',
@@ -139,7 +136,6 @@ export const RESPONSE_MESSAGES = {
   },
 } as const;
 
-// Content Types
 export const CONTENT_TYPES = {
   JSON: 'application/json',
 } as const;

@@ -27,7 +27,6 @@ export async function POST(req: Request) {
     return Response.json({ message: 'Received webhook' });
   } catch (error) {
     console.error('Webhook verification failed:', error);
-    console.log({ body });
     return new Response('Webhook verification failed', { status: 400 });
   }
 }

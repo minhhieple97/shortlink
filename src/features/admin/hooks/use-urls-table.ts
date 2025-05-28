@@ -90,7 +90,6 @@ export const useUrlsTable = (total: number) => {
   };
 
   return {
-    // State
     page,
     search,
     sortBy,
@@ -100,7 +99,6 @@ export const useUrlsTable = (total: number) => {
     isManagingUrl,
     totalPage,
 
-    // Actions
     handleSort,
     handleManageFlaggedUrl,
     copyToClipboard,

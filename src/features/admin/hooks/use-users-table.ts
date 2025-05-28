@@ -80,7 +80,6 @@ export const useUsersTable = (total: number) => {
   };
 
   return {
-    // State
     isLoading,
     totalPages,
     page,
@@ -88,7 +87,6 @@ export const useUsersTable = (total: number) => {
     sortBy,
     sortOrder,
 
-    // Actions
     handleSort,
     handleRoleToggle,
     createPaginationUrl,

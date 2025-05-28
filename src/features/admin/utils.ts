@@ -50,7 +50,6 @@ export const getColumnWidth = (column: string): string => {
   }
 };
 
-// Filter configuration
 export const filterConfig = [
   {
     key: 'all',
