@@ -104,6 +104,7 @@ export const RATE_LIMIT = {
 } as const;
 
 export const QSTASH_QUEUE = {
+  NAME: 'corgi-link-queue',
   ENDPOINTS: {
     CLICK_INCREMENT: '/api/queue/click',
   },

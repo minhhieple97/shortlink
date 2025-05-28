@@ -5,7 +5,7 @@ import { OPENAI_CONFIG } from '@/constants';
 import { redis } from '@/lib/redis';
 import { ShortCodeGenerator } from '@/lib/short-code-generator';
 import { ActionError } from '@/lib/safe-action';
-import { qstashClient } from '@/lib/qstash';
+import { queueClient } from '@/lib/qstash';
 import { openaiClient } from '@/lib/openai';
 import { db } from '@/db';
 import { urls } from '@/db/schema';
@@ -135,8 +135,7 @@ export const cleanupShortCode = async (shortCode: string): Promise<void> => {
 export const queueClickIncrement = async (shortCode: string) => {
   try {
     const baseUrl = env.NEXT_PUBLIC_APP_URL;
-
-    await qstashClient.publishJSON({
+    await queueClient.enqueueJSON({
       url: `${baseUrl}${QSTASH_QUEUE.ENDPOINTS.CLICK_INCREMENT}`,
       body: {
         action: QSTASH_QUEUE.ACTIONS.INCREMENT_CLICK,
