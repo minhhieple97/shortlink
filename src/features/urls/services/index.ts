@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import { env } from '@/env';
 import { UrlSafetyCheck } from '../types';
 import { SHORT_CODE, URL_PROTOCOLS, URL_SAFETY } from '@/constants';
@@ -6,10 +5,12 @@ import { OPENAI_CONFIG } from '@/constants';
 import { redis } from '@/lib/redis';
 import { ShortCodeGenerator } from '@/lib/short-code-generator';
 import { ActionError } from '@/lib/safe-action';
-const client = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-  baseURL: 'https://multiappai-api.itmovnteam.com/v1',
-});
+import { qstashClient } from '@/lib/qstash';
+import { openaiClient } from '@/lib/openai';
+import { db } from '@/db';
+import { urls } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { QSTASH_QUEUE, RESPONSE_MESSAGES, CONTENT_TYPES } from '@/constants';
 
 export const isValidUrl = (url: string): boolean => {
   try {
@@ -56,7 +57,7 @@ export const checkUrlSafety = async (url: string) => {
       Only respond with the JSON object, no additional text.
     `;
 
-    const response = await client.chat.completions.create({
+    const response = await openaiClient.chat.completions.create({
       model: OPENAI_CONFIG.MODEL,
       messages: [
         {
@@ -129,4 +130,49 @@ export const processSafetyCheck = (
 
 export const cleanupShortCode = async (shortCode: string): Promise<void> => {
   await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
+};
+
+export const queueClickIncrement = async (shortCode: string) => {
+  try {
+    const baseUrl = env.NEXT_PUBLIC_APP_URL;
+
+    await qstashClient.publishJSON({
+      url: `${baseUrl}${QSTASH_QUEUE.ENDPOINTS.CLICK_INCREMENT}`,
+      body: {
+        action: QSTASH_QUEUE.ACTIONS.INCREMENT_CLICK,
+        shortCode,
+        timestamp: Date.now(),
+      },
+      headers: {
+        'Content-Type': CONTENT_TYPES.JSON,
+      },
+    });
+  } catch (error) {
+    console.error(RESPONSE_MESSAGES.ERRORS.QUEUE_FAILED, error);
+    await incrementClicksDirectly(shortCode);
+  }
+};
+
+const incrementClicksDirectly = async (shortCode: string) => {
+  try {
+    await db.transaction(async (tx) => {
+      const url = await tx.query.urls.findFirst({
+        where: eq(urls.shortCode, shortCode),
+      });
+
+      if (url) {
+        const newClicks = url.clicks + 1;
+        await tx
+          .update(urls)
+          .set({
+            clicks: newClicks,
+          })
+          .where(eq(urls.shortCode, shortCode));
+
+        await redis.hincrby(`url:${shortCode}`, 'clicks', 1);
+      }
+    });
+  } catch (error) {
+    console.error(RESPONSE_MESSAGES.ERRORS.DIRECT_UPDATE_FAILED, error);
+  }
 };

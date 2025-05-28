@@ -5,6 +5,7 @@ import { db } from '@/db';
 import { urls } from '@/db/schema';
 import { redis } from '@/lib/redis';
 import { CACHE_TTL } from '@/constants';
+import { queueClickIncrement } from '../services';
 
 type CachedUrlData = {
   originalUrl: string;
@@ -26,7 +27,7 @@ export const getUrlByShortCode = async (shortCode: string) => {
       clicks: parseInt((cached.clicks as string) || '0', 10),
     } as CachedUrlData;
 
-    incrementClicksAsync(shortCode, urlData.clicks);
+    await queueClickIncrement(shortCode);
 
     return {
       originalUrl: urlData.originalUrl,
@@ -45,23 +46,17 @@ export const getUrlByShortCode = async (shortCode: string) => {
 
   const updatedClicks = url.clicks + 1;
 
-  await Promise.all([
-    db
-      .update(urls)
-      .set({
-        clicks: updatedClicks,
-      })
-      .where(eq(urls.shortCode, shortCode)),
-    redis.hset(`url:${shortCode}`, {
-      originalUrl: url.originalUrl,
-      flagged: (url.flagged || false).toString(),
-      flagReason: url.flagReason || 'null',
-      userId: url.userId || 'null',
-      clicks: updatedClicks.toString(),
-    }),
-    ,
-  ]);
+  await redis.hset(`url:${shortCode}`, {
+    originalUrl: url.originalUrl,
+    flagged: (url.flagged || false).toString(),
+    flagReason: url.flagReason || 'null',
+    userId: url.userId || 'null',
+    clicks: updatedClicks.toString(),
+  });
   await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
+
+  await queueClickIncrement(shortCode);
+
   return {
     originalUrl: url.originalUrl,
     flagged: url.flagged || false,
@@ -69,20 +64,3 @@ export const getUrlByShortCode = async (shortCode: string) => {
   };
 };
 
-const incrementClicksAsync = async (shortCode: string, currentClicks: number) => {
-  try {
-    await db.transaction(async (tx) => {
-      const newClicks = currentClicks + 1;
-      await tx
-        .update(urls)
-        .set({
-          clicks: newClicks,
-        })
-        .where(eq(urls.shortCode, shortCode));
-
-      await redis.hincrby(`url:${shortCode}`, 'clicks', 1);
-    });
-  } catch (error) {
-    console.error('Failed to increment clicks:', error);
-  }
-};
