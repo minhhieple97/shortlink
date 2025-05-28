@@ -5,32 +5,30 @@ import { AlertTriangle, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import type { UrlWithUser } from '@/features/admin/types';
+import { createSearchParamsCache, parseAsInteger, parseAsString } from 'nuqs/server';
 
 export const metadata: Metadata = {
   title: 'Flagged URLs | Admin | ShortLink',
   description: 'Review potentially unsafe URLs in the ShortLink application',
 };
 
+const getSearchParams = createSearchParamsCache({
+  page: parseAsInteger.withDefault(1),
+  search: parseAsString.withDefault(''),
+  sortBy: parseAsString.withDefault('createdAt'),
+  sortOrder: parseAsString.withDefault('desc'),
+});
+
 export default async function FlaggedURLsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    page?: string;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = await searchParams;
-  const page = params.page ? parseInt(params.page) : 1;
-  const search = params.search || '';
-  const sortBy = (params.sortBy || 'createdAt') as
-    | 'originalUrl'
-    | 'shortCode'
-    | 'createdAt'
-    | 'clicks'
-    | 'userName';
-  const sortOrder = (params.sortOrder || 'desc') as 'asc' | 'desc';
+  const params = getSearchParams.parse(await searchParams);
+  const page = params.page;
+  const search = params.search;
+  const sortBy = params.sortBy as 'originalUrl' | 'shortCode' | 'createdAt' | 'clicks' | 'userName';
+  const sortOrder = params.sortOrder as 'asc' | 'desc';
 
   const response = await getAllUrls({
     page,

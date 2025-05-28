@@ -32,7 +32,7 @@ export const UsersTable = ({
     handleRoleToggle,
     createPaginationUrl,
     getUserInitials,
-  } = useUsersTable(total, currentPage, currentSearch, currentSortBy, currentSortOrder);
+  } = useUsersTable(total);
 
   return (
     <div className="space-y-4">

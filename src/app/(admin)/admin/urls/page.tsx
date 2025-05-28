@@ -25,8 +25,6 @@ export default async function AdminUrlsPage({
     filter?: string;
   }>;
 }) {
-  const user = await currentUser();
-
   const params = await searchParams;
   const page = params.page ? parseInt(params.page) : 1;
   const search = params.search || '';
