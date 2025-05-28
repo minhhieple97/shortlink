@@ -128,9 +128,10 @@ OPENAI_API_KEY=your_openai_api_key
 docker-compose up -d
 
 # Setup database schema
-pnpm db:generate
-pnpm db:push
+npm run db
 ```
 
 ### 4. Launch Development Server
+```bash
+npm run dev
 ```
