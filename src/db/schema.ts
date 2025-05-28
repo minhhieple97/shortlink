@@ -20,7 +20,10 @@ export const users = pgTable('users', {
   password: text('password'),
   role: userRoleEnum('role').default('user').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const urls = pgTable('urls', {
@@ -28,7 +31,10 @@ export const urls = pgTable('urls', {
   originalUrl: varchar('original_url', { length: 2000 }).notNull(),
   shortCode: varchar('short_code', { length: 10 }).notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
   clicks: integer('clicks').default(0).notNull(),
   userId: varchar('user_id', { length: 255 }).references(() => users.id, {
     onDelete: 'set null',

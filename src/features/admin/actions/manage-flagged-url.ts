@@ -30,7 +30,6 @@ export const manageFlaggedUrl = adminAction
           .set({
             flagged: false,
             flagReason: null,
-            updatedAt: new Date(),
           })
           .where(eq(urls.id, urlId));
 

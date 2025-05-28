@@ -50,7 +50,6 @@ export const getUrlByShortCode = async (shortCode: string) => {
       .update(urls)
       .set({
         clicks: updatedClicks,
-        updatedAt: new Date(),
       })
       .where(eq(urls.shortCode, shortCode)),
     redis.hset(`url:${shortCode}`, {
@@ -78,7 +77,6 @@ const incrementClicksAsync = async (shortCode: string, currentClicks: number) =>
         .update(urls)
         .set({
           clicks: newClicks,
-          updatedAt: new Date(),
         })
         .where(eq(urls.shortCode, shortCode));
 

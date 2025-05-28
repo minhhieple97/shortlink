@@ -29,7 +29,6 @@ export const updateUserRole = adminAction
       .update(users)
       .set({
         role,
-        updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
 

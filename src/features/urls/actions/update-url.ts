@@ -33,7 +33,6 @@ export const updateUrl = authAction
       .update(urls)
       .set({
         shortCode: customCode,
-        updatedAt: new Date(),
       })
       .where(eq(urls.id, id));
 
