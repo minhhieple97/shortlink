@@ -5,19 +5,21 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { updateUserRole } from '../actions/update-user-role';
 import { routes } from '@/routes';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 
-export const useUsersTable = (
-  total: number,
-  currentPage: number,
-  currentSearch: string,
-  currentSortBy: string,
-  currentSortOrder: string,
-) => {
+export const useUsersTable = (total: number) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
-  const limit = PAGINATION.DEFAULT_LIMIT;
-  const totalPages = Math.ceil(total / limit);
+  const [page, setPage] = useQueryState(
+    'page',
+    parseAsInteger.withDefault(PAGINATION.DEFAULT_PAGE),
+  );
+  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''));
+  const [sortBy, setSortBy] = useQueryState('sortBy', parseAsString.withDefault(''));
+  const [sortOrder, setSortOrder] = useQueryState('sortOrder', parseAsString.withDefault('asc'));
+
+  const totalPages = Math.ceil(total / PAGINATION.DEFAULT_LIMIT);
 
   const { execute, reset } = useAction(updateUserRole, {
     onSuccess: ({ data }) => {
@@ -37,40 +39,23 @@ export const useUsersTable = (
     },
   });
 
-  const preserveParams = () => {
-    if (typeof window === 'undefined') return '';
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    return '';
-  };
-
   const handleSort = (column: string) => {
-    const params = new URLSearchParams();
-
-    if (currentSearch) {
-      params.set('search', currentSearch);
-    }
-
-    params.set('sortBy', column);
-
-    if (currentSortBy === column) {
-      params.set('sortOrder', currentSortOrder === 'asc' ? 'desc' : 'asc');
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      params.set('sortOrder', 'asc');
+      setSortBy(column);
+      setSortOrder('asc');
     }
-
-    params.set('page', '1');
-
-    router.push(`${routes.admin.users}?${params.toString()}`);
+    setPage(PAGINATION.DEFAULT_PAGE);
   };
 
   const createPaginationUrl = (targetPage: number) => {
     const params = new URLSearchParams();
     params.set('page', targetPage.toString());
 
-    if (currentSearch) params.set('search', currentSearch);
-    if (currentSortBy) params.set('sortBy', currentSortBy);
-    if (currentSortOrder) params.set('sortOrder', currentSortOrder);
+    if (search) params.set('search', search);
+    if (sortBy) params.set('sortBy', sortBy);
+    if (sortOrder) params.set('sortOrder', sortOrder);
 
     return `${routes.admin.users}?${params.toString()}`;
   };
@@ -98,6 +83,10 @@ export const useUsersTable = (
     // State
     isLoading,
     totalPages,
+    page,
+    search,
+    sortBy,
+    sortOrder,
 
     // Actions
     handleSort,
