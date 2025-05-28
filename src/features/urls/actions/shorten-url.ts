@@ -8,7 +8,7 @@ import { ActionError, authAction } from '@/lib/safe-action';
 import { UrlFormSchema } from '../schemas';
 import { isAdmin } from '@/lib/utils';
 import { env } from '@/env';
-import { CACHE_TTL, URL_SAFETY, RATE_LIMIT, SHORT_CODE } from '@/constants';
+import { CACHE_TTL, URL_SAFETY, SHORT_CODE } from '@/constants';
 import { routes } from '@/routes';
 import { redis } from '@/lib/redis';
 import { ShortCodeGenerator } from '@/lib/short-code-generator';
@@ -19,65 +19,33 @@ export const shortenUrl = authAction
   .schema(UrlFormSchema)
   .action(async ({ parsedInput: { url, customCode }, ctx }) => {
     const { user } = ctx;
-    const rateLimitResult = await RateLimiter.checkRateLimit(
-      user.id,
-      RATE_LIMIT.DEFAULT_MAX_REQUESTS,
-      RATE_LIMIT.DEFAULT_WINDOW_MS,
-    );
+
+    const rateLimitResult = await RateLimiter.checkRateLimit(user.id);
 
     if (!rateLimitResult.allowed) {
       throw new ActionError(
         `Rate limit exceeded. Try again in a minute. Remaining: ${rateLimitResult.remaining}`,
       );
     }
+
     const originalUrl = ensureHttps(url);
+    const userIsAdmin = isAdmin(user);
 
-    let shortCode: string;
+    const [shortCode, safetyCheck] = await Promise.all([
+      generateShortCode(customCode),
+      checkUrlSafety(originalUrl),
+    ]);
 
-    if (customCode) {
-      const isAvailable = await ShortCodeGenerator.isCodeAvailable(customCode);
-      if (!isAvailable) {
-        throw new ActionError('Custom code already exists');
-      }
+    const { flagged, flagReason, shouldBlock } = processSafetyCheck(safetyCheck, userIsAdmin);
 
-      const reserved = await ShortCodeGenerator.reserveCode(customCode);
-      if (!reserved) {
-        throw new ActionError('Custom code was taken by another user');
-      }
-
-      shortCode = customCode;
-    } else {
-      shortCode = await ShortCodeGenerator.generateUniqueCode();
-    }
-
-    const safetyCheck = await checkUrlSafety(originalUrl);
-    let flagged = false;
-    let flagReason = null;
-
-    if (safetyCheck.success && safetyCheck.data) {
-      flagged = safetyCheck.data.flagged;
-      flagReason = safetyCheck.data.reason;
-      if (
-        safetyCheck.data.category === URL_SAFETY.CATEGORIES.MALICIOUS &&
-        safetyCheck.data.confidence > URL_SAFETY.CONFIDENCE_THRESHOLD &&
-        !isAdmin(user)
-      ) {
-        await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
-        throw new ActionError('This URL is flagged as malicious');
-      }
+    if (shouldBlock) {
+      await cleanupShortCode(shortCode);
+      throw new ActionError('This URL is flagged as malicious');
     }
 
     try {
       await db.transaction(async (tx) => {
-        const existingUrl = await tx.query.urls.findFirst({
-          where: eq(urls.shortCode, shortCode),
-        });
-
-        if (existingUrl) {
-          throw new ActionError('Short code collision detected');
-        }
-
-        const [insertedUrl] = await tx
+        const [result] = await tx
           .insert(urls)
           .values({
             originalUrl,
@@ -86,10 +54,19 @@ export const shortenUrl = authAction
             flagged,
             flagReason,
           })
-          .returning();
+          .returning()
+          .catch(async (error) => {
+            if (error.code === '23505') {
+              throw new ActionError('Short code collision detected');
+            }
+            throw error;
+          });
 
-        return insertedUrl;
+        return result;
       });
+
+      const baseUrl = env.NEXT_PUBLIC_APP_URL;
+      const shortUrl = `${baseUrl}/r/${shortCode}`;
 
       const cacheData = {
         originalUrl,
@@ -99,11 +76,10 @@ export const shortenUrl = authAction
         clicks: 0,
       };
 
-      await redis.hset(`url:${shortCode}`, cacheData);
-      await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
-
-      const baseUrl = env.NEXT_PUBLIC_APP_URL;
-      const shortUrl = `${baseUrl}/r/${shortCode}`;
+      await Promise.all([
+        redis.hset(`url:${shortCode}`, cacheData),
+        redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING),
+      ]);
 
       revalidatePath(routes.dashboard.root);
 
@@ -113,8 +89,51 @@ export const shortenUrl = authAction
         flagReason,
       };
     } catch (error) {
-      // Clean up reserved code on failure
-      await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
+      await cleanupShortCode(shortCode);
       throw error;
     }
   });
+
+const generateShortCode = async (customCode?: string): Promise<string> => {
+  if (customCode) {
+    const isAvailable = await ShortCodeGenerator.isCodeAvailable(customCode);
+    if (!isAvailable) {
+      throw new ActionError('Custom code already exists');
+    }
+
+    const reserved = await ShortCodeGenerator.reserveCode(customCode);
+    if (!reserved) {
+      throw new ActionError('Custom code was taken by another user');
+    }
+
+    return customCode;
+  }
+
+  return ShortCodeGenerator.generateUniqueCode();
+};
+
+const processSafetyCheck = (
+  safetyCheck: Awaited<ReturnType<typeof checkUrlSafety>>,
+  userIsAdmin: boolean,
+): { flagged: boolean; flagReason: string | null; shouldBlock: boolean } => {
+  if (!safetyCheck.success || !safetyCheck.data) {
+    return { flagged: false, flagReason: null, shouldBlock: false };
+  }
+
+  const { flagged, reason, category, confidence } = safetyCheck.data;
+
+  const shouldBlock =
+    category === URL_SAFETY.CATEGORIES.MALICIOUS &&
+    confidence > URL_SAFETY.CONFIDENCE_THRESHOLD &&
+    !userIsAdmin;
+
+  return {
+    flagged,
+    flagReason: reason,
+    shouldBlock,
+  };
+};
+
+const cleanupShortCode = async (shortCode: string): Promise<void> => {
+  await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
+};

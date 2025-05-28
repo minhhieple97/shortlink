@@ -1,24 +1,19 @@
-import { redis } from './redis';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+
+const rateLimiter = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '60 s'),
+});
 
 export class RateLimiter {
-  static async checkRateLimit(
-    userId: string,
-    limit: number = 10,
-    windowMs: number = 60000,
-  ): Promise<{ allowed: boolean; remaining: number }> {
-    const key = `rate_limit:${userId}`;
-    const window = Math.floor(Date.now() / windowMs);
-    const windowKey = `${key}:${window}`;
-
-    const current = await redis.incr(windowKey);
-
-    if (current === 1) {
-      await redis.expire(windowKey, Math.ceil(windowMs / 1000));
-    }
+  static async checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+    const identifier = `user:${userId}`;
+    const result = await rateLimiter.limit(identifier);
 
     return {
-      allowed: current <= limit,
-      remaining: Math.max(0, limit - current),
+      allowed: result.success,
+      remaining: result.remaining,
     };
   }
 }
