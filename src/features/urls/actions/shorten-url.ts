@@ -8,7 +8,7 @@ import { ActionError, authAction } from '@/lib/safe-action';
 import { UrlFormSchema } from '../schemas';
 import { isAdmin } from '@/lib/utils';
 import { env } from '@/env';
-import { CACHE_TTL, URL_SAFETY } from '@/constants';
+import { CACHE_TTL, URL_SAFETY, RATE_LIMIT, SHORT_CODE } from '@/constants';
 import { routes } from '@/routes';
 import { redis } from '@/lib/redis';
 import { ShortCodeGenerator } from '@/lib/short-code-generator';
@@ -19,7 +19,11 @@ export const shortenUrl = authAction
   .schema(UrlFormSchema)
   .action(async ({ parsedInput: { url, customCode }, ctx }) => {
     const { user } = ctx;
-    const rateLimitResult = await RateLimiter.checkRateLimit(user.id, 100, 60 * 1000);
+    const rateLimitResult = await RateLimiter.checkRateLimit(
+      user.id,
+      RATE_LIMIT.DEFAULT_MAX_REQUESTS,
+      RATE_LIMIT.DEFAULT_WINDOW_MS,
+    );
 
     if (!rateLimitResult.allowed) {
       throw new ActionError(
@@ -53,20 +57,18 @@ export const shortenUrl = authAction
     if (safetyCheck.success && safetyCheck.data) {
       flagged = safetyCheck.data.flagged;
       flagReason = safetyCheck.data.reason;
-
       if (
         safetyCheck.data.category === URL_SAFETY.CATEGORIES.MALICIOUS &&
         safetyCheck.data.confidence > URL_SAFETY.CONFIDENCE_THRESHOLD &&
         !isAdmin(user)
       ) {
-        await redis.srem('used_short_codes', shortCode);
+        await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
         throw new ActionError('This URL is flagged as malicious');
       }
     }
 
     try {
       await db.transaction(async (tx) => {
-        // Double-check in database (defense in depth)
         const existingUrl = await tx.query.urls.findFirst({
           where: eq(urls.shortCode, shortCode),
         });
@@ -75,7 +77,6 @@ export const shortenUrl = authAction
           throw new ActionError('Short code collision detected');
         }
 
-        // Insert the new URL
         const [insertedUrl] = await tx
           .insert(urls)
           .values({
@@ -90,7 +91,6 @@ export const shortenUrl = authAction
         return insertedUrl;
       });
 
-      // Cache the mapping for fast lookups
       const cacheData = {
         originalUrl,
         flagged,
@@ -99,7 +99,8 @@ export const shortenUrl = authAction
         clicks: 0,
       };
 
-      await redis.setex(`url:${shortCode}`, CACHE_TTL.URL_MAPPING, JSON.stringify(cacheData));
+      await redis.hset(`url:${shortCode}`, cacheData);
+      await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
 
       const baseUrl = env.NEXT_PUBLIC_APP_URL;
       const shortUrl = `${baseUrl}/r/${shortCode}`;
@@ -113,7 +114,7 @@ export const shortenUrl = authAction
       };
     } catch (error) {
       // Clean up reserved code on failure
-      await redis.srem('used_short_codes', shortCode);
+      await redis.srem(SHORT_CODE.REDIS_SET_KEY, shortCode);
       throw error;
     }
   });

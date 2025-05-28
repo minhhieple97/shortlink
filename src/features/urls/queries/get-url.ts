@@ -15,10 +15,16 @@ type CachedUrlData = {
 };
 
 export const getUrlByShortCode = async (shortCode: string) => {
-  const cached = await redis.get(`url:${shortCode}`);
+  const cached = await redis.hgetall(`url:${shortCode}`);
 
-  if (cached) {
-    const urlData = JSON.parse(cached as string) as CachedUrlData;
+  if (cached && Object.keys(cached).length > 0) {
+    const urlData = {
+      originalUrl: cached.originalUrl,
+      flagged: cached.flagged === 'true',
+      flagReason: cached.flagReason === 'null' ? null : cached.flagReason,
+      userId: cached.userId === 'null' ? null : cached.userId,
+      clicks: parseInt((cached.clicks as string) || '0', 10),
+    } as CachedUrlData;
 
     incrementClicksAsync(shortCode, urlData.clicks);
 
@@ -48,17 +54,14 @@ export const getUrlByShortCode = async (shortCode: string) => {
       })
       .where(eq(urls.shortCode, shortCode)),
 
-    redis.setex(
-      `url:${shortCode}`,
-      CACHE_TTL.URL_MAPPING,
-      JSON.stringify({
-        originalUrl: url.originalUrl,
-        flagged: url.flagged || false,
-        flagReason: url.flagReason || null,
-        userId: url.userId,
-        clicks: updatedClicks,
-      }),
-    ),
+    redis.hset(`url:${shortCode}`, {
+      originalUrl: url.originalUrl,
+      flagged: (url.flagged || false).toString(),
+      flagReason: url.flagReason || 'null',
+      userId: url.userId || 'null',
+      clicks: updatedClicks.toString(),
+    }),
+    redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING),
   ]);
 
   return {
@@ -70,38 +73,19 @@ export const getUrlByShortCode = async (shortCode: string) => {
 
 const incrementClicksAsync = async (shortCode: string, currentClicks: number) => {
   try {
-    const newClicks = currentClicks + 1;
-
-    await Promise.all([
-      db
+    await db.transaction(async (tx) => {
+      const newClicks = currentClicks + 1;
+      await tx
         .update(urls)
         .set({
           clicks: newClicks,
           updatedAt: new Date(),
         })
-        .where(eq(urls.shortCode, shortCode)),
+        .where(eq(urls.shortCode, shortCode));
 
-      redis.setex(
-        `url:${shortCode}`,
-        CACHE_TTL.URL_MAPPING,
-        JSON.stringify(await getCachedData(shortCode, newClicks)),
-      ),
-    ]);
+      await redis.hincrby(`url:${shortCode}`, 'clicks', 1);
+    });
   } catch (error) {
     console.error('Failed to increment clicks:', error);
   }
-};
-
-const getCachedData = async (shortCode: string, clicks: number) => {
-  const url = await db.query.urls.findFirst({
-    where: eq(urls.shortCode, shortCode),
-  });
-
-  return {
-    originalUrl: url!.originalUrl,
-    flagged: url!.flagged || false,
-    flagReason: url!.flagReason || null,
-    userId: url!.userId,
-    clicks,
-  };
 };

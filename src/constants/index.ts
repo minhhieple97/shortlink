@@ -83,9 +83,21 @@ export const ADMIN_TABLE = {
   ID_DISPLAY_LENGTH: 8,
 } as const;
 
-
 export const CACHE_TTL = {
   URL_MAPPING: 60 * 60 * 24,
   SHORT_CODE_EXISTENCE: 60 * 60,
   RATE_LIMIT: 60 * 15,
+  URL_REDIS_EXPIRY: 60 * 60 * 24 * 30, // 30 days
+} as const;
+
+export const SHORT_CODE = {
+  ALPHABET: '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz',
+  LENGTH: 7,
+  MAX_RETRIES: 5,
+  REDIS_SET_KEY: 'used_short_codes',
+} as const;
+
+export const RATE_LIMIT = {
+  DEFAULT_MAX_REQUESTS: 100,
+  DEFAULT_WINDOW_MS: 60 * 1000, // 1 minute
 } as const;
