@@ -6,7 +6,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { IUrl, PaginationInfo } from '../types';
 import { QRCodeModal } from './qr-code-modal';
 import { EditUrlModal } from './edit-url-modal';
-import { TablePagination } from '@/components/shared';
 import { useUserUrlsTable } from '../hooks/use-user-urls-table';
 import {
   DropdownMenu,
@@ -24,14 +23,16 @@ import {
 } from '@/components/ui/table';
 import { truncateUrl } from '@/lib/utils';
 import { PAGINATION, URL_DISPLAY } from '@/constants';
+import { use } from 'react';
 
 type IUserUrlsTableProps = {
-  urls: IUrl[];
-  pagination: PaginationInfo;
+  urlsPromise: Promise<{ urls: IUrl[]; pagination: PaginationInfo }>;
   currentPage?: number;
 };
 
-export const UserUrlsTable = ({ urls, pagination }: IUserUrlsTableProps) => {
+export const UserUrlsTable = ({ urlsPromise, currentPage }: IUserUrlsTableProps) => {
+  const { urls, pagination } = use(urlsPromise);
+
   const {
     isDeleting,
     qrCodeUrl,
