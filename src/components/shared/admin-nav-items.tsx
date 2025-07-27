@@ -1,11 +1,5 @@
 import { routes } from '@/routes';
-import {
-  AlertTriangleIcon,
-  DatabaseIcon,
-  LayoutDashboardIcon,
-  Link2Icon,
-  UsersIcon,
-} from 'lucide-react';
+import { AlertTriangleIcon, LayoutDashboardIcon, Link2Icon, UsersIcon } from 'lucide-react';
 
 export type NavItem = {
   name: string;

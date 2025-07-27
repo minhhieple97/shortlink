@@ -4,7 +4,7 @@ import { Form, FormControl, FormField, FormItem, Input, Button } from '@/compone
 import { env } from '@/env';
 import { useShortenUrl } from '../hooks/use-shorten-url';
 import { UI_CONSTANTS } from '@/constants';
-import { SignIn, SignInButton, useAuth, useSignIn } from '@clerk/nextjs';
+import { SignInButton, useAuth } from '@clerk/nextjs';
 import { AnalyzingModal } from '@/components/shared';
 
 export const UrlShortenerForm = () => {

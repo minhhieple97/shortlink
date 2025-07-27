@@ -15,7 +15,7 @@ export const useUsersTable = (total: number) => {
     'page',
     parseAsInteger.withDefault(PAGINATION.DEFAULT_PAGE),
   );
-  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''));
+  const [search] = useQueryState('search', parseAsString.withDefault(''));
   const [sortBy, setSortBy] = useQueryState('sortBy', parseAsString.withDefault(''));
   const [sortOrder, setSortOrder] = useQueryState('sortOrder', parseAsString.withDefault('asc'));
 

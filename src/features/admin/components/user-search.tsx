@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { routes } from '@/routes';
-import { Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
@@ -29,14 +28,6 @@ export const UserSearch = ({ initialSearch }: UserSearchProps) => {
 
     params.set('page', '1');
 
-    router.push(`${routes.admin.users}?${params.toString()}`);
-  };
-
-  const clearSearch = () => {
-    setSearchTerm('');
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('search');
-    params.set('page', '1');
     router.push(`${routes.admin.users}?${params.toString()}`);
   };
 

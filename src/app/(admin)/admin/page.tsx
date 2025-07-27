@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, ArrowRight, Database, Link2Icon, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Link2Icon, Users } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 

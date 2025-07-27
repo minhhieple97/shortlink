@@ -4,7 +4,6 @@ import { UrlsTable } from '@/features/admin/components';
 import { UrlFilter } from '@/features/admin/components/url-filter';
 import { UrlSearch } from '@/features/admin/components/url-search';
 import { getAllUrls } from '@/features/admin/queries/get-all-urls';
-import { currentUser } from '@clerk/nextjs/server';
 import type { UrlWithUser } from '@/features/admin/types';
 
 import { Metadata } from 'next';

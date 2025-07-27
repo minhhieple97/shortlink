@@ -30,7 +30,7 @@ type IUserUrlsTableProps = {
   currentPage?: number;
 };
 
-export const UserUrlsTable = ({ urlsPromise, currentPage }: IUserUrlsTableProps) => {
+export const UserUrlsTable = ({ urlsPromise }: IUserUrlsTableProps) => {
   const { urls, pagination } = use(urlsPromise);
 
   const {

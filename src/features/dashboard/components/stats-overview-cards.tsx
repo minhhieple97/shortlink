@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, MousePointer, Link } from 'lucide-react';
 
 type StatsOverviewCardsProps = {
@@ -44,7 +44,7 @@ export const StatsOverviewCards = ({
 
   return (
     <div className="flex flex-wrap gap-4 mb-8">
-      {stats.map((stat, index) => {
+      {stats.map((stat) => {
         const Icon = stat.icon;
         return (
           <Card

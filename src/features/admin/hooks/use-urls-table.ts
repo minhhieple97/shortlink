@@ -19,13 +19,13 @@ export const useUrlsTable = (total: number) => {
   const [copyingId, setCopyingId] = useState<number | null>(null);
 
   const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(DEFAULT_PAGE));
-  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(DEFAULT_SEARCH));
+  const [search] = useQueryState('search', parseAsString.withDefault(DEFAULT_SEARCH));
   const [sortBy, setSortBy] = useQueryState('sortBy', parseAsString.withDefault(DEFAULT_SORT_BY));
   const [sortOrder, setSortOrder] = useQueryState(
     'sortOrder',
     parseAsString.withDefault(DEFAULT_SORT_ORDER),
   );
-  const [filter, setFilter] = useQueryState('filter', parseAsString);
+  const [filter] = useQueryState('filter', parseAsString);
 
   const { execute: executeManageFlaggedUrl, isPending: isManagingUrl } = useAction(
     manageFlaggedUrl,

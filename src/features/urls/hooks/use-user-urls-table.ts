@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { IUrl } from '../types';
 import { useDeleteUrl } from './use-delete-url';
 import { UI_CONSTANTS } from '@/constants';
 import { useRouter } from 'next/navigation';

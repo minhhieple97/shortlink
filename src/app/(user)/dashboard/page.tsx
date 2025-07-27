@@ -11,6 +11,7 @@ import { PAGINATION } from '@/constants';
 import { PaginationUrls } from '@/components/shared/pagination-urls';
 import { createSearchParamsCache, parseAsInteger } from 'nuqs/server';
 import { Suspense } from 'react';
+import { IUrl, PaginationInfo } from '@/features/urls/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,7 +101,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 async function PaginationWrapper({
   urlsPromise,
 }: {
-  urlsPromise: Promise<{ urls: any[]; pagination: any }>;
+  urlsPromise: Promise<{ urls: IUrl[]; pagination: PaginationInfo }>;
 }) {
   const { pagination } = await urlsPromise;
   return <PaginationUrls pagination={pagination} className="hidden sm:block" />;
