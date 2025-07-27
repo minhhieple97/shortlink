@@ -3,7 +3,7 @@
   <p><strong>Modern URL Shortener & Analytics Platform</strong></p>
   
   <p>
-    <a href="https://shortlink-lac.vercel.app/" target="_blank">
+    <a href="https://corgi-link.vercel.app/" target="_blank">
       <img src="https://img.shields.io/badge/🌐_Live_Demo-Visit_App-blue?style=for-the-badge" alt="Live Demo" />
     </a>
   </p>
@@ -22,7 +22,7 @@
 
 A next-generation URL shortener engineered for enterprise performance and security. Built with cutting-edge asynchronous processing architecture and AI-powered threat detection, Shortlink delivers lightning-fast URL transformation while ensuring maximum security for your links and users.
 
-**🚀 Experience blazing-fast performance with intelligent security at [shortlink-lac.vercel.app](https://shortlink-lac.vercel.app/)**
+**🚀 Experience blazing-fast performance with intelligent security at [https://corgi-link.vercel.app](https://corgi-link.vercel.app/)**
 
 ### 🎯 **Why Choose Shortlink?**
 
