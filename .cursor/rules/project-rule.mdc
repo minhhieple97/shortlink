@@ -1,0 +1,449 @@
+---
+alwaysApply: true
+---
+
+# Cursor Rules - Next.js App Router
+
+## Core Principles
+
+### Export & Code Standards
+- **ALWAYS** use `export const` for named exports
+- **ALWAYS** use `type` instead of `interface`
+- **ALWAYS** fetch data in Server Components when possible
+- **ALWAYS** follow SOLID principles
+- Create custom hooks to separate logic from presentation
+- Write clean, readable code with single responsibilities
+
+```typescript
+// ✅ Good
+export const UserProfile = () => { ... }
+export type User = { id: string; name: string }
+
+// ❌ Avoid
+export default function UserProfile() { ... }
+interface User { id: string; name: string }
+```
+
+### Data Fetching Strategy
+```typescript
+// ✅ Server Component - Fetch data here
+export default async function UsersPage() {
+const users = await getUsers() // Server-side query
+return <UserList users={users} />
+}
+
+// ✅ Client Component - Receive data as props
+'use client'
+export const UserList = ({ users }: { users: User[] }) => {
+return <ul>{users.map(user => <li key={user.id}>{user.name}</li>)}</ul>
+}
+```
+
+### Required Libraries
+- **nuqs**: URL parameter handling in Client Components
+- **Zod + next-safe-action**: Server action validation and protection
+
+```typescript
+// URL parameters
+import { useQueryState, parseAsString } from 'nuqs'
+export const useSearchQuery = () => useQueryState('q', parseAsString.withDefault(''))
+
+// Server actions
+import { z } from 'zod'
+import { createSafeAction } from 'next-safe-action'
+
+const CreateUserSchema = z.object({
+name: z.string().min(1),
+email: z.string().email()
+})
+
+export const createUserAction = createSafeAction(CreateUserSchema, async (data) => {
+const user = await userService.createUser(data)
+return { success: true, user }
+})
+```
+
+## Feature-Based Structure
+
+### Directory Layout
+```
+src/
+├── app/                     # App Router pages
+├── components/              # Reusable UI components
+│   ├── ui/                 # Base components
+│   └── common/             # Shared components
+├── features/               # Feature modules
+│   └── user/              # Example feature
+│       ├── actions/       # Server actions
+│       ├── queries/       # Data access
+│       ├── services/      # Business logic
+│       ├── schemas.ts     # Zod schemas
+│       ├── types.ts       # Type definitions
+│       └── index.ts       # Export all
+├── hooks/                 # Global hooks
+└── lib/                   # Utilities
+```
+
+### Feature Structure (SOLID Principles)
+
+#### 1. Actions (SRP - Single Responsibility)
+Server mutations called from Client Components.
+
+```typescript
+// features/user/actions/create-user.ts
+export const createUserAction = createSafeAction(CreateUserSchema, async (data) => {
+return await userService.createUser(data) // Delegate to service
+})
+```
+
+#### 2. Queries (SRP - Data Access Only)
+Database queries used by Server Components and Services.
+
+```typescript
+// features/user/queries/get-user.ts
+export const getUserById = async (id: string): Promise<User | null> => {
+return await db.user.findUnique({ where: { id } })
+}
+```
+
+#### 3. Services (SRP + DIP - Business Logic)
+Orchestrate queries and business operations.
+
+```typescript
+// features/user/services/user-service.ts
+export const userService = {
+async createUser(data: CreateUserInput): Promise<User> {
+  // Business logic here
+  const user = await createUser(data) // Use query
+  // Additional operations (email, etc.)
+  return user
+}
+}
+```
+
+#### 4. Types (ISP - Interface Segregation)
+Focused, composable type definitions.
+
+```typescript
+// features/user/types.ts
+export type User = {
+id: string
+name: string
+email: string
+role: 'admin' | 'user'
+}
+
+export type CreateUserInput = Omit<User, 'id'>
+export type UserSummary = Pick<User, 'id' | 'name'>
+```
+
+#### 5. Schemas (SRP - Validation Only)
+```typescript
+// features/user/schemas.ts
+export const CreateUserSchema = z.object({
+name: z.string().min(1),
+email: z.string().email()
+})
+```
+
+### Clean Imports
+```typescript
+// ✅ Feature index exports
+import { 
+createUserAction, 
+getUserById, 
+userService,
+type User 
+} from '@/features/user'
+
+// ✅ Specific imports when needed
+import type { User } from '@/features/user/types'
+```
+
+## SOLID in Practice
+
+### Single Responsibility (SRP)
+Each file/function has one clear purpose:
+- Actions: Handle mutations
+- Queries: Data access
+- Services: Business logic
+- Types: Data structures
+- Schemas: Validation
+
+### Open/Closed (OCP)
+Extend functionality without modifying existing code:
+
+```typescript
+// Define abstraction
+export type NotificationChannel = {
+send: (to: string, message: string) => Promise<void>
+}
+
+// Implementations
+export const emailChannel: NotificationChannel = { /* ... */ }
+export const smsChannel: NotificationChannel = { /* ... */ }
+
+// Service uses abstraction
+export const notify = (channel: NotificationChannel, to: string, msg: string) => {
+return channel.send(to, msg)
+}
+```
+
+### Dependency Inversion (DIP)
+High-level modules depend on abstractions, not details:
+
+```typescript
+// Service depends on query function signature, not implementation
+export const userService = {
+async validateAccess(userId: string) {
+  const user = await getUserById(userId) // Depends on contract
+  return user?.role === 'admin'
+}
+}
+```
+
+## Naming Conventions
+
+- **Files**: kebab-case (`create-user.ts`, `user-service.ts`)
+- **Components**: PascalCase (`UserProfile.tsx`)
+- **Types**: PascalCase (`User`, `CreateUserInput`)
+- **Functions**: camelCase (`createUser`, `getUserById`)
+- **Constants**: SCREAMING_SNAKE_CASE (`API_ENDPOINTS`)
+
+## Common Anti-Patterns
+
+❌ **Avoid:**
+- Using `interface` instead of `type`
+- Mixing feature logic across folders
+- Large, unfocused functions/components
+- Client-side data fetching when server-side is possible
+- Business logic in actions/queries (use services)
+
+✅ **Do:**
+- Keep responsibilities focused (SRP)
+- Fetch data in Server Components
+- Use services for business logic
+- Design composable types (ISP)
+- Depend on abstractions (DIP)# Cursor Rules - Next.js App Router
+
+## Core Principles
+
+### Export & Code Standards
+- **ALWAYS** use `export const` for named exports
+- **ALWAYS** use `type` instead of `interface`
+- **ALWAYS** fetch data in Server Components when possible
+- **ALWAYS** follow SOLID principles
+- Create custom hooks to separate logic from presentation
+- Write clean, readable code with single responsibilities
+
+```typescript
+// ✅ Good
+export const UserProfile = () => { ... }
+export type User = { id: string; name: string }
+
+// ❌ Avoid
+export default function UserProfile() { ... }
+interface User { id: string; name: string }
+```
+
+### Data Fetching Strategy
+```typescript
+// ✅ Server Component - Fetch data here
+export default async function UsersPage() {
+const users = await getUsers() // Server-side query
+return <UserList users={users} />
+}
+
+// ✅ Client Component - Receive data as props
+'use client'
+export const UserList = ({ users }: { users: User[] }) => {
+return <ul>{users.map(user => <li key={user.id}>{user.name}</li>)}</ul>
+}
+```
+
+### Required Libraries
+- **nuqs**: URL parameter handling in Client Components
+- **Zod + next-safe-action**: Server action validation and protection
+
+```typescript
+// URL parameters
+import { useQueryState, parseAsString } from 'nuqs'
+export const useSearchQuery = () => useQueryState('q', parseAsString.withDefault(''))
+
+// Server actions
+import { z } from 'zod'
+import { createSafeAction } from 'next-safe-action'
+
+const CreateUserSchema = z.object({
+name: z.string().min(1),
+email: z.string().email()
+})
+
+export const createUserAction = createSafeAction(CreateUserSchema, async (data) => {
+const user = await userService.createUser(data)
+return { success: true, user }
+})
+```
+
+## Feature-Based Structure
+
+### Directory Layout
+```
+src/
+├── app/                     # App Router pages
+├── components/              # Reusable UI components
+│   ├── ui/                 # Base components
+│   └── common/             # Shared components
+├── features/               # Feature modules
+│   └── user/              # Example feature
+│       ├── actions/       # Server actions
+│       ├── queries/       # Data access
+│       ├── services/      # Business logic
+│       ├── schemas.ts     # Zod schemas
+│       ├── types.ts       # Type definitions
+│       └── index.ts       # Export all
+├── hooks/                 # Global hooks
+└── lib/                   # Utilities
+```
+
+### Feature Structure (SOLID Principles)
+
+#### 1. Actions (SRP - Single Responsibility)
+Server mutations called from Client Components.
+
+```typescript
+// features/user/actions/create-user.ts
+export const createUserAction = createSafeAction(CreateUserSchema, async (data) => {
+return await userService.createUser(data) // Delegate to service
+})
+```
+
+#### 2. Queries (SRP - Data Access Only)
+Database queries used by Server Components and Services.
+
+```typescript
+// features/user/queries/get-user.ts
+export const getUserById = async (id: string): Promise<User | null> => {
+return await db.user.findUnique({ where: { id } })
+}
+```
+
+#### 3. Services (SRP + DIP - Business Logic)
+Orchestrate queries and business operations.
+
+```typescript
+// features/user/services/user-service.ts
+export const userService = {
+async createUser(data: CreateUserInput): Promise<User> {
+  // Business logic here
+  const user = await createUser(data) // Use query
+  // Additional operations (email, etc.)
+  return user
+}
+}
+```
+
+#### 4. Types (ISP - Interface Segregation)
+Focused, composable type definitions.
+
+```typescript
+// features/user/types.ts
+export type User = {
+id: string
+name: string
+email: string
+role: 'admin' | 'user'
+}
+
+export type CreateUserInput = Omit<User, 'id'>
+export type UserSummary = Pick<User, 'id' | 'name'>
+```
+
+#### 5. Schemas (SRP - Validation Only)
+```typescript
+// features/user/schemas.ts
+export const CreateUserSchema = z.object({
+name: z.string().min(1),
+email: z.string().email()
+})
+```
+
+### Clean Imports
+```typescript
+// ✅ Feature index exports
+import { 
+createUserAction, 
+getUserById, 
+userService,
+type User 
+} from '@/features/user'
+
+// ✅ Specific imports when needed
+import type { User } from '@/features/user/types'
+```
+
+## SOLID in Practice
+
+### Single Responsibility (SRP)
+Each file/function has one clear purpose:
+- Actions: Handle mutations
+- Queries: Data access
+- Services: Business logic
+- Types: Data structures
+- Schemas: Validation
+
+### Open/Closed (OCP)
+Extend functionality without modifying existing code:
+
+```typescript
+// Define abstraction
+export type NotificationChannel = {
+send: (to: string, message: string) => Promise<void>
+}
+
+// Implementations
+export const emailChannel: NotificationChannel = { /* ... */ }
+export const smsChannel: NotificationChannel = { /* ... */ }
+
+// Service uses abstraction
+export const notify = (channel: NotificationChannel, to: string, msg: string) => {
+return channel.send(to, msg)
+}
+```
+
+### Dependency Inversion (DIP)
+High-level modules depend on abstractions, not details:
+
+```typescript
+// Service depends on query function signature, not implementation
+export const userService = {
+async validateAccess(userId: string) {
+  const user = await getUserById(userId) // Depends on contract
+  return user?.role === 'admin'
+}
+}
+```
+
+## Naming Conventions
+
+- **Files**: kebab-case (`create-user.ts`, `user-service.ts`)
+- **Components**: PascalCase (`UserProfile.tsx`)
+- **Types**: PascalCase (`User`, `CreateUserInput`)
+- **Functions**: camelCase (`createUser`, `getUserById`)
+- **Constants**: SCREAMING_SNAKE_CASE (`API_ENDPOINTS`)
+
+## Common Anti-Patterns
+
+❌ **Avoid:**
+- Using `interface` instead of `type`
+- Mixing feature logic across folders
+- Large, unfocused functions/components
+- Client-side data fetching when server-side is possible
+- Business logic in actions/queries (use services)
+
+✅ **Do:**
+- Keep responsibilities focused (SRP)
+- Fetch data in Server Components
+- Use services for business logic
+- Design composable types (ISP)
+- Depend on abstractions (DIP)
