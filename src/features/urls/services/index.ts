@@ -11,6 +11,7 @@ import { db } from '@/db';
 import { urls } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { QSTASH_QUEUE, RESPONSE_MESSAGES, CONTENT_TYPES } from '@/constants';
+import { isExpired } from '@/lib/date-utils';
 
 export const isValidUrl = (url: string): boolean => {
   try {
@@ -160,6 +161,12 @@ const incrementClicksDirectly = async (shortCode: string) => {
       });
 
       if (url) {
+        // Check if the URL has expired
+        if (isExpired(url.expiresAt)) {
+          console.warn(`URL expired during direct update: ${shortCode}`);
+          return;
+        }
+
         const newClicks = url.clicks + 1;
         await tx
           .update(urls)

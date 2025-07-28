@@ -6,6 +6,7 @@ import { urls } from '@/db/schema';
 import { redis } from '@/lib/redis';
 import { CACHE_TTL } from '@/constants';
 import { queueClickIncrement } from '../services';
+import { isExpired } from '@/lib/date-utils';
 
 type CachedUrlData = {
   originalUrl: string;
@@ -13,6 +14,7 @@ type CachedUrlData = {
   flagReason: string | null;
   userId: string | null;
   clicks: number;
+  expiresAt: string | null;
 };
 
 export const getUrlByShortCode = async (shortCode: string) => {
@@ -25,7 +27,13 @@ export const getUrlByShortCode = async (shortCode: string) => {
       flagReason: cached.flagReason === 'null' ? null : cached.flagReason,
       userId: cached.userId === 'null' ? null : cached.userId,
       clicks: parseInt((cached.clicks as string) || '0', 10),
+      expiresAt: cached.expiresAt === 'null' ? null : cached.expiresAt,
     } as CachedUrlData;
+
+    // Check if the URL has expired
+    if (isExpired(urlData.expiresAt)) {
+      return null; // URL has expired
+    }
 
     await queueClickIncrement(shortCode);
 
@@ -44,6 +52,11 @@ export const getUrlByShortCode = async (shortCode: string) => {
     return null;
   }
 
+  // Check if the URL has expired
+  if (isExpired(url.expiresAt)) {
+    return null; // URL has expired
+  }
+
   const updatedClicks = url.clicks + 1;
 
   await redis.hset(`url:${shortCode}`, {
@@ -52,6 +65,7 @@ export const getUrlByShortCode = async (shortCode: string) => {
     flagReason: url.flagReason || 'null',
     userId: url.userId || 'null',
     clicks: updatedClicks.toString(),
+    expiresAt: url.expiresAt ? url.expiresAt.toISOString() : 'null',
   });
   await redis.expire(`url:${shortCode}`, CACHE_TTL.URL_MAPPING);
 

@@ -20,7 +20,7 @@ import { RateLimiter } from '@/lib/rate-limiter';
 
 export const shortenUrl = authAction
   .schema(UrlFormSchema)
-  .action(async ({ parsedInput: { url, customCode }, ctx }) => {
+  .action(async ({ parsedInput: { url, customCode, expiresAt }, ctx }) => {
     const { user } = ctx;
 
     const rateLimitResult = await RateLimiter.checkRateLimit(user.id);
@@ -56,6 +56,7 @@ export const shortenUrl = authAction
             userId: user.id,
             flagged,
             flagReason,
+            expiresAt,
           })
           .returning()
           .catch(async (error) => {
@@ -73,10 +74,11 @@ export const shortenUrl = authAction
 
       const cacheData = {
         originalUrl,
-        flagged,
-        flagReason,
+        flagged: flagged.toString(),
+        flagReason: flagReason || 'null',
         userId: user.id,
-        clicks: 0,
+        clicks: '0',
+        expiresAt: expiresAt ? expiresAt.toISOString() : 'null',
       };
 
       await redis.hset(`url:${shortCode}`, cacheData);

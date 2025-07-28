@@ -19,6 +19,7 @@ export const useShortenUrl = () => {
     defaultValues: {
       url: '',
       customCode: '',
+      expiresAt: undefined,
     },
   });
 
@@ -86,6 +87,10 @@ export const useShortenUrl = () => {
       }
       if (errors.customCode?.message) {
         toast.error(errors.customCode.message);
+        return;
+      }
+      if (errors.expiresAt?.message) {
+        toast.error(errors.expiresAt.message);
         return;
       }
       toast.error(UI_CONSTANTS.TOAST_MESSAGES.VALIDATION_FALLBACK);

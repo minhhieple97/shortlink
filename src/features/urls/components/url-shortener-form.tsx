@@ -1,6 +1,7 @@
 'use client';
 
 import { Form, FormControl, FormField, FormItem, Input, Button } from '@/components/ui';
+import { ExpirationDatePicker } from '@/components/ui/date-picker';
 import { env } from '@/env';
 import { useShortenUrl } from '../hooks/use-shorten-url';
 import { UI_CONSTANTS } from '@/constants';
@@ -116,6 +117,22 @@ export const UrlShortenerForm = () => {
                           disabled={isPending || !isSignedIn}
                         />
                       </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="expiresAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <ExpirationDatePicker
+                        date={field.value}
+                        onDateChange={field.onChange}
+                        disabled={isPending || !isSignedIn}
+                      />
                     </FormControl>
                   </FormItem>
                 )}

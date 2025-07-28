@@ -9,6 +9,16 @@ export const UrlFormSchema = z.object({
     .optional()
     .or(z.literal(''))
     .transform((val) => (val === '' ? undefined : val)),
+  expiresAt: z
+    .date()
+    .min(new Date(), 'Expiration date must be in the future')
+    .optional()
+    .refine((date) => {
+      if (!date) return true;
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 5); // Maximum 5 years
+      return date <= maxDate;
+    }, 'Expiration date cannot be more than 5 years in the future'),
 });
 
 

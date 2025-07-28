@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { urls } from '@/db/schema';
 import { redis } from '@/lib/redis';
 import { QSTASH_QUEUE, HTTP_STATUS, RESPONSE_MESSAGES, CONTENT_TYPES } from '@/constants';
+import { isExpired } from '@/lib/date-utils';
 
 type QueuePayload = {
   action: typeof QSTASH_QUEUE.ACTIONS.INCREMENT_CLICK;
@@ -42,6 +43,11 @@ async function handler(request: Request) {
 
       if (!url) {
         console.warn(`${RESPONSE_MESSAGES.QUEUE.URL_NOT_FOUND} ${shortCode}`);
+        return;
+      }
+
+      if (isExpired(url.expiresAt)) {
+        console.warn(`URL expired: ${shortCode}`);
         return;
       }
 

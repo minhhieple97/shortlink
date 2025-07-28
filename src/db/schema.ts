@@ -41,6 +41,7 @@ export const urls = pgTable('urls', {
   }),
   flagged: boolean('flagged').default(false).notNull(),
   flagReason: text('flag_reason'),
+  expiresAt: timestamp('expires_at'),
 });
 
 export const urlsRelations = relations(urls, ({ one }) => ({
